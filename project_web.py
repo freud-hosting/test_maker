@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-
 from testpack import generate_questionnaire
 import streamlit as st
 from read_files import read_docx, read_pdf, save_txt
+from pathlib import Path
 sts = st.session_state
           
 def callback():
@@ -17,45 +17,53 @@ def callback3():
     sts.current_step = "A"
     for key in sts.keys():
         del sts[key]    
+        
+def callback4():
+    sts.input_text = ""
     
 if "current_step" not in sts:
     sts.current_step = "A"
 if "input_text" not in sts:
     sts.input_text = ""
+if "questionnaire" not in sts:
+    sts.questionnaire = ""
 
 st.title("모의고사 자동제작 서비스")
 
 if sts.current_step == "A":
-    format = st.radio("파일 유형 선택", ["직접 입력", ".pdf", ".docx"], index=0, key="format")
+    format = st.radio("파일 유형 선택", ["첨부파일", "직접 입력"], index=0, on_change=callback4)
     if format == "직접 입력":
         sts.input_text = st.text_area("내용 입력", sts.input_text)
-    elif format == ".pdf":
-        pdf_loc = st.file_uploader("최대 200MB까지 업로드할 수 있습니다")
-        if pdf_loc:
-            sts.input_text = read_pdf(pdf_loc)
-    elif format == ".docx":
-        docx_loc = st.file_uploader("최대 200MB까지 업로드할 수 있습니다")
-        if docx_loc:
-            sts.input_text = read_docx(docx_loc)
-                
-    sts.code = st.text_input("참여자번호를 입력하세요. 1번째 사용인 경우 A를, 2번째 사용인 경우 B를 뒤에 붙여주세요 (예: 7A)")
-    sts.model = st.radio("모델 선택 (GPT-4를 권장합니다.)", ["GPT-4", "GPT-3.5"], index=0)
-    sts.language = st.radio("언어 선택 (영어가 더 정확합니다.)", ["한국어", "English"], index=0)
-    sts.num_questions = st.number_input("생성할 문제 수 설정", min_value=1, max_value=20, value=5)
-    
-    if sts.input_text:
-        st.button("모의고사 생성하기", on_click=callback)
-        # st.form_submit_button("모의고사 생성하기", on_click=callback)
+    elif format == "첨부파일":
+        loc = st.file_uploader("파일을 업로드해주세요.",type=["pdf", "docx", "txt"])
+        if loc:
+            file_type = Path(loc.name).suffix
+            if file_type == ".pdf":
+                sts.input_text = read_pdf(loc)
+            elif file_type == ".docx":
+                sts.input_text = read_docx(loc)
+            elif file_type == ".txt":
+                sts.input_text = loc.read().decode('utf8')
+ 
+    if sts.input_text:               
+        sts.code = st.text_input("참여자번호: 1번째 사용 시 A를, 2번째 사용 시 B를 뒤에 붙여주세요 (예: 7A)")
+        sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
+        sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
+        sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
+        if sts.code:
+            st.button("모의고사 생성하기", on_click=callback)
+        else:
+            st.button(":red[참여자 번호를 입력해주세요.]", disabled=True)
     else:
         st.button(":red[내용을 입력하거나 파일을 업로드해 주세요.]", disabled=True)
-        # st.form_submit_button(":red[내용을 입력하거나 파일을 업로드해 주세요.]", disabled=True)
 
 if sts.current_step == "B":
-    with st.form("main_quiz"):            
-        for q_no, question in enumerate(sts.questionnaire):
-            labels = question["selection"]
-            st.radio(question["question"], range(len(labels)), index=0, format_func=labels.__getitem__, key=f"chosen_{q_no}")
-        st.form_submit_button("제출하기", on_click=callback2)
+    if sts.questionnaire:
+        with st.form("main_quiz"):            
+            for q_no, question in enumerate(sts.questionnaire):
+                labels = question["selection"]
+                st.radio(question["question"], range(len(labels)), index=0, format_func=labels.__getitem__, key=f"chosen_{q_no}")
+            st.form_submit_button("제출하기", on_click=callback2)
             
 if sts.current_step == "C":
     score_list = [0] * len(sts.questionnaire)

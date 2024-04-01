@@ -7,6 +7,7 @@ from langchain.chains.openai_functions import create_structured_output_runnable
 from typing import List
 import random
 from pprint import pprint
+import openai
 import streamlit as st
 
 load_dotenv()
@@ -32,47 +33,42 @@ Tips: You must return {num_questions} questions, not more and not less.
 '''
 
 def generate_questionnaire(model_name, input_text, language, num_questions):
-    if model_name == "GPT-4":
-        model_ver = "gpt-4-0125-preview"
-    elif model_name == "GPT-3.5":
-        model_ver = "gpt-3.5-turbo-0125"
-        
-    response_list = []
-    duplicate = False
-    
-    while len(response_list) < num_questions:
+    try:
+        if model_name == "GPT-4":
+            model_ver = "gpt-4-0125-preview"
+        elif model_name == "GPT-3.5":
+            model_ver = "gpt-3.5-turbo-0125"
+
         model = ChatOpenAI(model=model_ver, temperature=1, max_tokens=None)
         prompt = PromptTemplate.from_template(template)
         chain = create_structured_output_runnable(Questionmaker, model, prompt)
-        response = chain.invoke({"input_data": input_text, "language": language, "num_questions": num_questions - len(response_list)})
-        response_list.extend(response.questions)
-        if len(response_list) > num_questions:
-            response_list = response_list[:num_questions]
-        if len(response_list) < num_questions and not duplicate:
-            st.write("인공지능의 한계로 동일/비슷한 문제가 여러 개 생성되었습니다.")
-            st.write("언어를 영어로 변경하거나, GPT-4를 사용하시면 보다 다양한 문제를 푸실 수 있습니다.")
-            duplicate = True        
-    
-    random.shuffle(response_list)
-    questionnaire = list()
-    for question in response_list:        
-        q_dict = dict()
-        q_dict["question"] = question.question
-        total_selections = 1 + len(question.incorrect)
-        correct_index = random.randint(0, total_selections -1)
-        q_dict["selection"] = question.incorrect
-        q_dict["selection"].insert(correct_index, question.correct)
-        q_dict["correct"] = correct_index
-        q_dict["explanation"] = question.explanation
-        questionnaire.append(q_dict)    
-    return questionnaire
+        response = chain.invoke({"input_data": input_text, "language": language, "num_questions": num_questions})
+        response_list = response.questions
+        if len(response_list) < num_questions:
+            st.write("인공지능의 한계로 설정하신 문제 수보다 적은 수의 문제가 출제되었습니다.")      
+        
+        random.shuffle(response_list)
+        questionnaire = list()
+        for question in response_list:        
+            q_dict = dict()
+            q_dict["question"] = question.question
+            total_selections = 1 + len(question.incorrect)
+            correct_index = random.randint(0, total_selections -1)
+            q_dict["selection"] = question.incorrect
+            q_dict["selection"].insert(correct_index, question.correct)
+            q_dict["correct"] = correct_index
+            q_dict["explanation"] = question.explanation
+            questionnaire.append(q_dict)    
+        return questionnaire
+    except openai.BadRequestError as e:
+        st.write("파일에 문제가 있거나 내용이 너무 길어 문제를 생성할 수 없습니다.")
+        st.write("새로고침한 후 다시 시도해보세요.")
+        st.write(e)
 
-'''
-with open("sample.txt",encoding='utf-8') as f:
-    sample = f.read()
-'''
 
 if __name__ == "__main__":
-    pprint(generate_questionnaire("GPT-3.5", "", "English", 20))
+    with open(input("파일경로입력: ")) as f:
+        sample = f.read()
+    pprint(generate_questionnaire("GPT-3.5", sample, "English", 20))
 
         
