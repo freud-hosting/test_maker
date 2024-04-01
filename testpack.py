@@ -9,6 +9,7 @@ import random
 from pprint import pprint
 import openai
 import streamlit as st
+from read_files import read_docx, read_pdf
 
 load_dotenv()
 
@@ -69,8 +70,4 @@ def generate_questionnaire(model_name, input_text, language, num_questions):
 
 
 if __name__ == "__main__":
-    with open(input("파일경로입력: ")) as f:
-        sample = f.read()
-    pprint(generate_questionnaire("GPT-3.5", sample, "English", 20))
-
-        
+    pprint(generate_questionnaire("GPT-4", read_docx("sample.docx"), "한국어", 5))

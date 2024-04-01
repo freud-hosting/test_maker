@@ -46,7 +46,7 @@ if sts.current_step == "A":
                 sts.input_text = loc.read().decode('utf8')
  
     if sts.input_text:               
-        sts.code = st.text_input("참여자번호: 1번째 사용 시 A를, 2번째 사용 시 B를 뒤에 붙여주세요 (예: 7A)")
+        sts.code = st.text_input("참여자번호를 입력해주세요.")
         sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
         sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
         sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
