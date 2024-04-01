@@ -54,7 +54,7 @@ if sts.current_step == "A":
             sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
             sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
             
-            sts.code = st.text_input("참여자번호를 입력해주세요. 1번째 시도는 A, 2번째 시도는 B를 붙여주세요. (1A, 2B 식)")
+            sts.code = st.text_input("참여자번호를 입력해주세요.")
             if sts.code:
                 if sts.passcode == os.environ["PROJECT_PASSCODE"]:
                     st.button("모의고사 생성하기", on_click=callback)
