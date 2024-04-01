@@ -3,6 +3,7 @@ from testpack import generate_questionnaire
 import streamlit as st
 from read_files import read_docx, read_pdf, save_txt
 from pathlib import Path
+import os
 sts = st.session_state
           
 def callback():
@@ -48,10 +49,14 @@ if sts.current_step == "A":
     if sts.input_text:               
         sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
         sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
-        sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=10))
-        sts.code = st.text_input("참여자번호를 입력해주세요.")
+        sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
+        sts.passcode = st.text_input("비밀번호를 입력해주세요.", password=True)
+        sts.code = st.text_input("참여자번호를 입력해주세요. 1번째 시도는 A, 2번째 시도는 B를 붙여주세요. (1A, 2B 식)")
         if sts.code:
-            st.button("모의고사 생성하기", on_click=callback)
+            if sts.passcode == os.environ["PROJECT_PASSCODE"]:
+                st.button("모의고사 생성하기", on_click=callback)
+            else:
+                st.button(":red[비밀번호가 틀렸습니다.]", disabled=True)
         else:
             st.button(":red[참여자 번호를 입력해주세요.]", disabled=True)
     else:
