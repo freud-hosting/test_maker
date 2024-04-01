@@ -34,23 +34,22 @@ if "passcode" not in sts:
 st.title("모의고사 자동제작 서비스")
 
 if sts.current_step == "A":
-    format = st.radio("파일 유형 선택", ["첨부파일", "직접 입력"], index=0, on_change=callback4)
-    if format == "직접 입력":
-        sts.input_text = st.text_area("내용 입력", sts.input_text)
-    elif format == "첨부파일":
-        loc = st.file_uploader("파일을 업로드해주세요.",type=["pdf", "docx", "txt"])
-        if loc:
-            file_type = Path(loc.name).suffix
-            if file_type == ".pdf":
-                sts.input_text = read_pdf(loc)
-            elif file_type == ".docx":
-                sts.input_text = read_docx(loc)
-            elif file_type == ".txt":
-                sts.input_text = loc.read().decode('utf8')
- 
-    if sts.input_text:
-        sts.passcode = st.text_input("비밀번호를 입력해주세요.", password=True)
-        if sts.passcode == os.environ["PROJECT_PASSCODE"]:
+    sts.passcode = st.text_input("비밀번호를 입력해주세요.", type="password")
+    if sts.passcode == os.environ["PROJECT_PASSCODE"]:
+        format = st.radio("파일 유형 선택", ["첨부파일", "직접 입력"], index=0, on_change=callback4)
+        if format == "직접 입력":
+            sts.input_text = st.text_area("내용 입력", sts.input_text)
+        elif format == "첨부파일":
+            loc = st.file_uploader("파일을 업로드해주세요.",type=["pdf", "docx", "txt"])
+            if loc:
+                file_type = Path(loc.name).suffix
+                if file_type == ".pdf":
+                    sts.input_text = read_pdf(loc)
+                elif file_type == ".docx":
+                    sts.input_text = read_docx(loc)
+                elif file_type == ".txt":
+                    sts.input_text = loc.read().decode('utf8')
+        if sts.input_text:
             sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
             sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
             sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
