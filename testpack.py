@@ -55,6 +55,8 @@ def generate_questionnaire(model_name, input_text, language, num_questions):
             total_selections = 1 + len(question.incorrect)
             correct_index = random.randint(0, total_selections -1)
             q_dict["selection"] = question.incorrect
+            while "" in q_dict["selection"]:
+                q_dict["selection"].remove("")
             q_dict["selection"].insert(correct_index, question.correct)
             q_dict["correct"] = correct_index
             q_dict["explanation"] = question.explanation
@@ -70,5 +72,3 @@ if __name__ == "__main__":
     with open(input("파일경로입력: ")) as f:
         sample = f.read()
     pprint(generate_questionnaire("GPT-3.5", sample, "English", 20))
-
-        
