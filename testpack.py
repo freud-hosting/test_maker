@@ -15,7 +15,7 @@ load_dotenv()
 class SingleQuestion(BaseModel):
     question: str = Field(description="Multiple choice questions")
     correct: str = Field(description = "The correct answer")
-    incorrect: List[str] = Field(description = "List of incorrect answers, up to 4 elements")
+    incorrect: List[str] = Field(description = "List of incorrect answers")
     explanation: str = Field(description="Explanation on why the answer is correct for each question")   
     
 class Questionmaker(BaseModel):
@@ -72,3 +72,5 @@ if __name__ == "__main__":
     with open(input("파일경로입력: ")) as f:
         sample = f.read()
     pprint(generate_questionnaire("GPT-3.5", sample, "English", 20))
+
+        
