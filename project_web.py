@@ -28,6 +28,8 @@ if "input_text" not in sts:
     sts.input_text = ""
 if "questionnaire" not in sts:
     sts.questionnaire = ""
+if "passcode" not in sts:
+    sts.passcode = ""
 
 st.title("모의고사 자동제작 서비스")
 
@@ -46,21 +48,23 @@ if sts.current_step == "A":
             elif file_type == ".txt":
                 sts.input_text = loc.read().decode('utf8')
  
-    if sts.input_text:               
-        sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
-        sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
-        sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
+    if sts.input_text:
         sts.passcode = st.text_input("비밀번호를 입력해주세요.", password=True)
-        sts.code = st.text_input("참여자번호를 입력해주세요. 1번째 시도는 A, 2번째 시도는 B를 붙여주세요. (1A, 2B 식)")
-        if sts.code:
-            if sts.passcode == os.environ["PROJECT_PASSCODE"]:
-                st.button("모의고사 생성하기", on_click=callback)
+        if sts.passcode == os.environ["PROJECT_PASSCODE"]:
+            sts.model = st.radio("모델 선택", ["GPT-4", "GPT-3.5"], index=0)
+            sts.language = st.radio("언어 선택", ["한국어", "English"], index=0)
+            sts.num_questions = int(st.number_input("문제 개수", min_value=1, max_value=20, value=5))
+            
+            sts.code = st.text_input("참여자번호를 입력해주세요. 1번째 시도는 A, 2번째 시도는 B를 붙여주세요. (1A, 2B 식)")
+            if sts.code:
+                if sts.passcode == os.environ["PROJECT_PASSCODE"]:
+                    st.button("모의고사 생성하기", on_click=callback)
+                else:
+                    st.button(":red[비밀번호가 틀렸습니다.]", disabled=True)
             else:
-                st.button(":red[비밀번호가 틀렸습니다.]", disabled=True)
+                st.button(":red[참여자 번호를 입력해주세요.]", disabled=True)
         else:
-            st.button(":red[참여자 번호를 입력해주세요.]", disabled=True)
-    else:
-        st.button(":red[내용을 입력하거나 파일을 업로드해 주세요.]", disabled=True)
+            st.button(":red[내용을 입력하거나 파일을 업로드해 주세요.]", disabled=True)
 
 if sts.current_step == "B":
     if sts.questionnaire:
