@@ -54,8 +54,7 @@ def save_txt(sts):
             result += f"question {idx + 1}: {question['question']}\n"
             for idx, s in enumerate(question["selection"]):
                 result += f"{idx + 1}. {s}\n"
-            result += f"selected: {sts[f'chosen_{idx}']}\n"
-            result += f"answer: {question['correct']}\n"
+            result += f"answer: {question['correct'] + 1}\n"
             result += f"explanation: {question['explanation']}\n"
             result += "\n"
         except:
